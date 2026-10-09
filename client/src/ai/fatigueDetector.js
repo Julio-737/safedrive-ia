@@ -45,7 +45,7 @@ function beep() {
   }
 }
 
-export async function initAI() {
+export async function initAI() {  .
   if (faceLandmarker) return;
   const statusPill = document.getElementById("aiStatusPill");
   if (statusPill) statusPill.innerText = "Cargando IA...";
@@ -58,7 +58,7 @@ export async function initAI() {
       baseOptions: {
         modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
       },
-      runningMode: "VIDEO",
+      runningMode: "VIDEO",  
       numFaces: 1
     });
 
