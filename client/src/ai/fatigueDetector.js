@@ -45,7 +45,7 @@ function beep() {
   }
 }
 
-export async function initAI() {  .
+export async function initAI() { 
   if (faceLandmarker) return;
   const statusPill = document.getElementById("aiStatusPill");
   if (statusPill) statusPill.innerText = "Cargando IA...";
