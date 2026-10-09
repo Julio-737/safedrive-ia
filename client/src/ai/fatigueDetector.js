@@ -208,21 +208,21 @@ function triggerAlarm(earVal = 0.18) {
   const codigoUnidad = sessionStorage.getItem("codigoUnidad") || "302-A";
   const nombreConductor = sessionStorage.getItem("nombreConductor") || "Juan Pérez Gómez";
 
-  fetch("http://localhost:8080/api/alertas", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      turnoId: turnoId,
-      unidadId: unidadId,
-      conductorId: conductorId,
-      unidad: codigoUnidad,
-      conductor: nombreConductor,
-      tipoAlerta: "Microsueño",
-      valorEar: parseFloat(earVal.toFixed(2)),
-      duracionSegundos: 2.0,
-      tramoRuta: "Puente Nuevo"
-    })
+fetch("https://safedrive-ia.onrender.com/api/alertas", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    turnoId: turnoId,
+    unidadId: unidadId,
+    conductorId: conductorId,
+    codigoUnidad: codigoUnidad,
+    nombreConductor: nombreConductor,
+    tipoAlerta: "Microsueño",
+    valorEar: earVal
   })
+})
+
+
   .then(res => res.json())
   .then(data => console.log("Alerta registrada:", data))
   .catch(err => console.warn("Error al enviar alerta:", err));
