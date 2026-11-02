@@ -1,5 +1,5 @@
-# 1. Compilación con Maven y Java 21
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# 1. Compilación con Maven y Java 25
+FROM maven:3.9.16-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
