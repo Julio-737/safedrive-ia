@@ -1,22 +1,22 @@
-<div class="mobile-container">
-  <header class="app-header">
+<div class="mobile-container text-center">
+  <header class="app-header mb-3">
     <h2>Registro de turno</h2>
     <p class="text-muted">Confirma tus datos antes de iniciar la ruta</p>
   </header>
 
   <div class="turn-summary-card">
-    <div class="clock-display" id="liveClock">07:45 AM</div>
-    <div class="date-display">Miércoles, 09 de septiembre de 2026</div>
+    <div class="clock-display" id="checklistTime">07:45 AM</div>
+    <div class="date-display" id="checklistDate">Miércoles, 09 de septiembre de 2026</div>
 
     <div class="driver-info-table">
-      <div class="row"><span>Conductor</span><strong>J. Pérez Gómez</strong></div>
-      <div class="row"><span>Unidad asignada</span><strong>302-A</strong></div>
+      <div class="row"><span>Conductor</span><strong id="checklistDriver">J. Pérez Gómez</strong></div>
+      <div class="row"><span>Unidad asignada</span><strong id="checklistUnit">302-A</strong></div>
       <div class="row"><span>Ruta</span><strong>SJL → Cercado de Lima</strong></div>
       <div class="row"><span>Horas descanso previas</span><strong>7h 30m</strong></div>
     </div>
   </div>
 
-  <div class="checklist-card">
+  <div class="checklist-card my-3">
     <h3>Checklist previo al turno</h3>
     <label class="check-item">
       <input type="checkbox" checked />
@@ -32,7 +32,7 @@
     </label>
   </div>
 
-  <button id="btnStartShift" class="btn-success w-100 mt-auto">
-    ▶ INICIAR TURNO Y MONITOREO
+  <button id="btnStartShift" class="btn-primary w-100 mt-3">
+    ► INICIAR TURNO Y MONITOREO
   </button>
 </div>

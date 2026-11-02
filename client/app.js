@@ -128,9 +128,47 @@ function bindEvents(viewName) {
     }
   }
   
-  // 3. CHECKLIST
+
+// 3. CHECKLIST
   if (viewName === "checklist") {
+    // A. Cargar datos del conductor asignado en la sesión
+    const driverEl = document.getElementById("checklistDriver");
+    const unitEl = document.getElementById("checklistUnit");
+
+    if (driverEl) driverEl.innerText = sessionStorage.getItem("nombreConductor") || "Juan Pérez Gómez";
+    if (unitEl) unitEl.innerText = sessionStorage.getItem("codigoUnidad") || "302-A";
+
+    // B. Reloj y fecha en vivo respetando el diseño original (formato 07:45 AM)
+    function updateClock() {
+      const now = new Date();
+      const timeEl = document.getElementById("checklistTime");
+      const dateEl = document.getElementById("checklistDate");
+
+      if (timeEl) {
+        let hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        const strHours = hours.toString().padStart(2, "0");
+        
+        timeEl.innerText = `${strHours}:${minutes} ${ampm}`;
+      }
+
+      if (dateEl) {
+        const opcionesFecha = { weekday: "long", day: "2-digit", month: "long", year: "numeric" };
+        const fechaFormateada = now.toLocaleDateString("es-PE", opcionesFecha);
+        dateEl.innerText = fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
+      }
+    }
+
+    updateClock();
+    const clockInterval = setInterval(updateClock, 1000);
+
+    // C. Manejo del inicio de turno
     document.getElementById("btnStartShift")?.addEventListener("click", async () => {
+      clearInterval(clockInterval);
+
       try {
         const res = await fetch("http://localhost:8080/api/turnos/inicio", {
           method: "POST",
@@ -147,13 +185,11 @@ function bindEvents(viewName) {
           const turnoCreado = await res.json();
           currentTurnoId = turnoCreado.id;
           sessionStorage.setItem("turnoId", currentTurnoId.toString());
-          console.log(" Turno registrado en BD con ID:", currentTurnoId);
         } else {
-          // Si el servidor responde pero falla la inserción, usar ID semilla por defecto
           sessionStorage.setItem("turnoId", "1");
         }
       } catch (err) {
-        console.warn("Servidor offline: usando ID de turno por defecto", err);
+        console.warn("Servidor offline: usando ID de turno local", err);
         sessionStorage.setItem("turnoId", "1");
       }
 
@@ -161,6 +197,8 @@ function bindEvents(viewName) {
       navigateTo("monitoreo");
     });
   }
+
+
 
   // 4. CABINA DE MONITOREO
   if (viewName === "monitoreo") {
