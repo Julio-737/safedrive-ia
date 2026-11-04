@@ -4,7 +4,7 @@ const viewport = document.getElementById("app-viewport");
 let shiftTimerInterval = null;
 let shiftStartTime = null;
 let supervisorPollingInterval = null;
-let currentTurnoId = null;
+let currentTurnoId = nulled;
 
 // Enrutador centralizado
 export async function navigateTo(viewName) {
@@ -39,6 +39,7 @@ export async function navigateTo(viewName) {
 }
 
 function bindEvents(viewName) {
+  
   // 1. LOGIN
   if (viewName === "login") {
     let role = "conductor";
@@ -67,55 +68,69 @@ function bindEvents(viewName) {
       const dni = inputDni ? inputDni.value.trim() : "";
       const password = inputPassword ? inputPassword.value.trim() : "";
 
-      const dniFinal = dni || (role === "conductor" ? "76543210" : "10457812");
-      const passwordFinal = password || (role === "conductor" ? "123456" : "admin123");
-
-      try {
-        const res = await fetch("http://localhost:8080/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dni: dniFinal, password: passwordFinal })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          console.log("✅ Sesión autenticada en PostgreSQL/Supabase:", data);
-
-          sessionStorage.setItem("usuarioId", data.id);
-          sessionStorage.setItem("dniConductor", data.dni);
-          sessionStorage.setItem("nombreConductor", data.nombreCompleto);
-          sessionStorage.setItem("rol", data.rol);
-          sessionStorage.setItem("conductorId", "1");
-          sessionStorage.setItem("unidadId", "1");
-          sessionStorage.setItem("codigoUnidad", "302-A");
-
-          if (data.rol === "supervisor") {
-            navigateTo("dashboard-supervisor");
-          } else {
-            navigateTo("onboarding");
-          }
-          return;
-        } else {
-          console.warn("Credenciales no válidas en BD, ingresando en modo demo local.");
-        }
-      } catch (err) {
-        console.warn("Servidor Spring Boot offline: continuando en modo demo local.", err);
+      if (!dni || !password) {
+        alert("Por favor, ingresa tu DNI y contraseña.");
+        return;
       }
 
-      // Fallback si la API no está lista
-      sessionStorage.setItem("usuarioId", "1");
-      sessionStorage.setItem("conductorId", "1");
-      sessionStorage.setItem("unidadId", "1");
-      sessionStorage.setItem("nombreConductor", role === "conductor" ? "Juan Pérez Gómez" : "Mitsy Paz Mendoza");
-      sessionStorage.setItem("codigoUnidad", "302-A");
+      // Cambiar URL si pruebas en Render o local:
+      const BACKEND_URL = "http://localhost:8080"; // Cambiar por tu URL de Render si pruebas en la nube
 
-      if (role === "conductor") {
-        navigateTo("onboarding");
-      } else {
-        navigateTo("dashboard-supervisor");
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ dni, password })
+        });
+
+        if (res.status === 401) {
+          alert("❌ Credenciales incorrectas. Verifique el DNI o la contraseña.");
+          return;
+        }
+
+        if (!res.ok) {
+          alert(`⚠️ Error del servidor (${res.status}): No se pudo autenticar.`);
+          return;
+        }
+
+        const data = await res.json();
+        console.log("✅ Sesión autenticada en PostgreSQL/Supabase:", data);
+
+        // Guardar datos reales devueltos por la BD
+        sessionStorage.setItem("usuarioId", data.id);
+        sessionStorage.setItem("dniConductor", data.dni);
+        sessionStorage.setItem("nombreConductor", data.nombreCompleto);
+        sessionStorage.setItem("rol", data.rol);
+        sessionStorage.setItem("conductorId", "1");
+        sessionStorage.setItem("unidadId", "1");
+        sessionStorage.setItem("codigoUnidad", "302-A");
+
+        alert(`¡Bienvenido(a) ${data.nombreCompleto}!`);
+
+        if (data.rol === "supervisor" || role === "supervisor") {
+          navigateTo("dashboard-supervisor");
+        } else {
+          navigateTo("onboarding");
+        }
+
+      } catch (err) {
+        console.error("Error al conectar con el backend:", err);
+        const usarDemo = confirm("⚠️ No se pudo conectar con la base de datos (Backend Offline).\n\n¿Deseas ingresar en MODO DEMO LOCAL para probar la interfaz?");
+        
+        if (usarDemo) {
+          sessionStorage.setItem("usuarioId", "1");
+          sessionStorage.setItem("conductorId", "1");
+          sessionStorage.setItem("unidadId", "1");
+          sessionStorage.setItem("nombreConductor", role === "conductor" ? "Juan Pérez Gómez" : "Mitsy Paz Mendoza");
+          sessionStorage.setItem("codigoUnidad", "302-A");
+
+          if (role === "conductor") navigateTo("onboarding");
+          else navigateTo("dashboard-supervisor");
+        }
       }
     });
   }
+
 
     // 2. ONBOARDING
   if (viewName === "onboarding") {
