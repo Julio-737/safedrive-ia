@@ -7,15 +7,18 @@ let eyesClosedStart = null;
 let isFatigued = false;
 let alarmInterval = null;
 
-// Paràmetres de detecció
-const EAR_THRESHOLD = 0.22;       // Umbral d'ulls tancats
-const FATIGUE_MS = 2000;          // 2 segons sostinguts
+// para la detección de fatiga
+const EAR_THRESHOLD = 0.22;       // Umbral para la detección de ojos cerrados
+const FATIGUE_MS = 1500;          // 1.5 segundos de ojos cerrados para activar la alerta
+let mouthOpenStart = null;        // Para la detección de bostezos
+let isYawning = false;            // Estado de detección de bostezo
 
-// Índexs anatòmics dels ulls a MediaPipe Face Mesh
+// Indices de referencia de los ojos según el modelo de MediaPipe Face 
 const LEFT_EYE = [33, 160, 158, 133, 153, 144];
 const RIGHT_EYE = [362, 385, 387, 263, 373, 380];
+const MOUTH_POINTS = [13, 14, 78, 308];
 
-// Sintetitzador d'àudio Web Audio API
+// para el beep de alerta
 let audioCtx = null;
 
 function getAudioContext() {
@@ -41,7 +44,7 @@ function beep() {
     osc.start();
     osc.stop(ctx.currentTime + 0.2);
   } catch (e) {
-    console.warn("Àudio bloquejat pel navegador fins a la interacció de l'usuari", e);
+    console.warn("Audio bloqueado por el navegador hasta la interacción del usuario", e);
   }
 }
 
@@ -76,7 +79,7 @@ export async function startCamera() {
   const video = document.getElementById("webcam");
   if (!video) return;
 
-  // Assegurar que la IA està carregada abans de processar el vídeo
+  // para asegurar que la IA esté inicializada antes de empezar la cámara
   if (!faceLandmarker) {
     await initAI();
   }
@@ -92,7 +95,7 @@ export async function startCamera() {
       requestAnimationFrame(runDetection);
     };
   } catch (err) {
-    console.warn("Intent flexible fallit, intentant fallback bàsic:", err);
+    console.warn("Intento de acceso a la cámara fallido:", err);
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
         video: { width: { ideal: 640 }, height: { ideal: 480 } }
@@ -104,7 +107,7 @@ export async function startCamera() {
         requestAnimationFrame(runDetection);
       };
     } catch (fallbackErr) {
-      alert("No s'ha pogut accedir a la càmera. Assegura't de tancar altres programes com OBS: " + fallbackErr.message);
+      alert("No se ha podido acceder a la cámara. Asegúrate de cerrar otros programas como OBS: " + fallbackErr.message);
     }
   }
 }
@@ -132,6 +135,12 @@ function calcEAR(pts, idx) {
   return v / h;
 }
 
+function calcMAR(pts) {
+  const v = dist(pts[MOUTH_POINTS[0]], pts[MOUTH_POINTS[1]]) ;
+  const h = dist(pts[MOUTH_POINTS[2]], pts[MOUTH_POINTS[3]]);
+  return v / h;
+}
+
 function runDetection() {
   const video = document.getElementById("webcam");
   if (!video || !cameraStream || video.paused || video.ended) return;
@@ -147,42 +156,61 @@ function runDetection() {
         const earR = calcEAR(res.faceLandmarks[0], RIGHT_EYE);
         const avg = (earL + earR) / 2.0;
 
+        const marVal = calcMAR(res.faceLandmarks[0]);
         const earLVal = document.getElementById("earLeft");
         const earRVal = document.getElementById("earRight");
         if (earLVal) earLVal.innerText = earL.toFixed(2);
         if (earRVal) earRVal.innerText = earR.toFixed(2);
 
-        checkFatigue(avg);
+        checkFatigue(avg, marVal);
       } else {
         resetAlarm();
       }
     } catch (err) {
-      console.warn("Error durant la detecció del fotograma:", err);
+      console.warn("Error durante la detección del fotograma:", err);
     }
   }
 
   requestAnimationFrame(runDetection);
 }
 
-function checkFatigue(ear) {
+
+function checkFatigue(ear, mar) {
   const now = Date.now();
+
+  // 1. Detección de Microsueño (Ojos cerrados)
   if (ear < EAR_THRESHOLD) {
     if (!eyesClosedStart) eyesClosedStart = now;
     else if (now - eyesClosedStart >= FATIGUE_MS && !isFatigued) {
-      triggerAlarm(ear);
+      triggerAlarm(ear, "Microsueño", "Microsueño detectado en cabina (> 1.5s)");
     }
   } else {
+    eyesClosedStart = null;
+  }
+
+  // 2. Detección de Bostezo (Boca abierta sostenida)
+  if (mar > MAR_THRESHOLD) {
+    if (!mouthOpenStart) mouthOpenStart = now;
+    else if (now - mouthOpenStart >= YAWN_MS && !isFatigued) {
+      triggerAlarm(mar, "Bostezo Profundo", "Bostezo frecuente / fatiga inicial detectada");
+    }
+  } else {
+    mouthOpenStart = null;
+  }
+
+  // Si ambos están normales, restablecer alarma
+  if (ear >= EAR_THRESHOLD && mar <= MAR_THRESHOLD && isFatigued) {
     resetAlarm();
   }
 }
 
-function triggerAlarm(earVal = 0.18) {
+function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
   isFatigued = true;
   document.getElementById("alertOverlay")?.classList.remove("hidden");
   
   const statusEl = document.getElementById("driverStatus");
   if (statusEl) {
-    statusEl.innerText = "¡FATIGA!";
+    statusEl.innerText = `¡${tipoAlerta.toUpperCase()}!`;
     statusEl.className = "status-warn";
   }
 
@@ -194,7 +222,7 @@ function triggerAlarm(earVal = 0.18) {
   const banner = document.getElementById("alertBanner");
   if (banner) {
     banner.className = "alert-banner critico";
-    banner.innerHTML = `<span class="icon">⚠</span><div><strong>Nivel de alerta: CRÍTICO</strong><p>Microsueño detectado en cabina (> 2s)</p></div>`;
+    banner.innerHTML = `<span class="icon">⚠</span><div><strong>Nivel de alerta: CRÍTICO</strong><p>${mensaje}</p></div>`;
   }
 
   if (!alarmInterval) {
@@ -217,19 +245,22 @@ fetch("https://safedrive-ia.onrender.com/api/alertas", {
     conductorId: conductorId,
     codigoUnidad: codigoUnidad,
     nombreConductor: nombreConductor,
-    tipoAlerta: "Microsueño",
-    valorEar: earVal
+    tipoAlerta: tipoAlerta,
+    valorEar: parseFloat(valorNum.toFixed(2)),    
+    duracionSegundos: tipoAlerta === "Microsueño" ? 2.0 : 1.5,
+    
   })
 })
 
 
   .then(res => res.json())
-  .then(data => console.log("Alerta registrada:", data))
+  .then(data => console.log(`Alerta de ${tipoAlerta} registrada en BD:`, data))
   .catch(err => console.warn("Error al enviar alerta:", err));
 }
 
 function resetAlarm() {
   eyesClosedStart = null;
+  mouthOpenStart = null;
   if (isFatigued) {
     isFatigued = false;
     document.getElementById("alertOverlay")?.classList.add("hidden");
