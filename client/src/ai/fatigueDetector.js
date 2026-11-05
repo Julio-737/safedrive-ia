@@ -239,8 +239,8 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
       turnoId: turnoId,
       unidadId: unidadId,
       conductorId: conductorId,
-      codigoUnidad: codigoUnidad,
-      nombreConductor: nombreConductor,
+      unidad: codigoUnidad,
+      conductor: nombreConductor,
       tipoAlerta: tipoAlerta,
       valorEar: parseFloat(valorNum.toFixed(2)),
       duracionSegundos: 1.5
