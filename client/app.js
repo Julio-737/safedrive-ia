@@ -4,7 +4,7 @@ const viewport = document.getElementById("app-viewport");
 let shiftTimerInterval = null;
 let shiftStartTime = null;
 let supervisorPollingInterval = null;
-let currentTurnoId = nulled;
+let currentTurnoId = null;
 
 // Enrutador centralizado
 export async function navigateTo(viewName) {
