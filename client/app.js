@@ -252,13 +252,81 @@ function bindEvents(viewName) {
       navigateTo("config-admin");
     });
   }
+  
 
-  // 5. ALERTAS CONDUCTOR
+// 5. ALERTAS CONDUCTOR
   if (viewName === "alertas-conductor") {
     document.getElementById("btnBackToMonitoreo")?.addEventListener("click", () => {
       navigateTo("monitoreo");
     });
+
+    async function cargarAlertasConductor() {
+      const contenedor = document.getElementById("listaAlertasConductor");
+      const cntHoy = document.getElementById("cntHoy");
+      const cntSemana = document.getElementById("cntSemana");
+
+      try {
+        // Intentar obtener las alertas registradas en Render
+        const res = await fetch("https://safedrive-ia.onrender.com/api/alertas");
+        
+        if (res.ok) {
+          const data = await res.json();
+          const alertas = Array.isArray(data) ? data : (data.ultimasAlertas || []);
+
+          if (cntHoy) cntHoy.innerText = alertas.length;
+          if (cntSemana) cntSemana.innerText = alertas.length;
+
+          if (alertas.length > 0 && contenedor) {
+            contenedor.innerHTML = alertas.map(a => {
+              let horaFormateada = new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", hour12: true });
+              if (a.fechaHora) {
+                const d = new Date(a.fechaHora);
+                if (!isNaN(d)) {
+                  horaFormateada = d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", hour12: true });
+                }
+              }
+
+              const esBostezo = a.tipoAlerta && a.tipoAlerta.toLowerCase().includes("bostezo");
+              const icono = esBostezo ? "🥱" : "⏱";
+              const titulo = a.tipoAlerta || "Microsueño detectado";
+
+              return `
+                <div class="card-blue d-flex justify-content-between align-items-center p-3" style="background: #132238; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center;">
+                  <div class="d-flex align-items-center gap-3" style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 1.5rem;">${icono}</span>
+                    <div class="text-start" style="text-align: left;">
+                      <strong style="color: #f8fafc; display: block; font-size: 0.95rem;">${titulo}</strong>
+                      <span class="text-muted" style="font-size: 0.8rem; color: #94a3b8;">
+                        Duración: ${a.duracionSegundos || 1.5}s · Alerta de cabina
+                      </span>
+                    </div>
+                  </div>
+                  <span style="color: #38bdf8; font-weight: bold; font-size: 0.85rem;">${horaFormateada}</span>
+                </div>
+              `;
+            }).join("");
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Consultando fallback local de alertas...", err);
+      }
+
+      // Fallback si no hay registros aún en BD o está cargando Render
+      if (cntHoy) cntHoy.innerText = "0";
+      if (cntSemana) cntSemana.innerText = "0";
+      if (contenedor) {
+        contenedor.innerHTML = `
+          <div class="card-blue text-center p-3 text-muted" style="background: #132238; border-radius: 12px; padding: 15px; color: #94a3b8;">
+            No hay eventos de fatiga registrados en este turno.
+          </div>
+        `;
+      }
+    }
+
+    cargarAlertasConductor();
   }
+
 
   // 6. FIN DE TURNO
   if (viewName === "fin-turno") {
