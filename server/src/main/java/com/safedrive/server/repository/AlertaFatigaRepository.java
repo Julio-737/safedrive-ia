@@ -14,5 +14,5 @@ public interface AlertaFatigaRepository extends JpaRepository<AlertaFatiga, Long
     long countByFechaHoraAfter(LocalDateTime fecha);
 
     // Obtener todas las alertas de una unidad específica
-    List<AlertaFatiga> findByUnidadOrderByFechaHoraDesc(String unidad);
+    List<AlertaFatiga> findByUnidadIdOrderByFechaHoraDesc(Integer unidadId);
 }

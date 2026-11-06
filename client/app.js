@@ -1,5 +1,7 @@
 import { initAI, startCamera, stopCamera } from "./src/ai/fatigueDetector.js";
 
+const API_URL = "http://127.0.0.1:8080";
+
 const viewport = document.getElementById("app-viewport");
 let shiftTimerInterval = null;
 let shiftStartTime = null;
@@ -73,11 +75,8 @@ function bindEvents(viewName) {
         return;
       }
 
-      
-      const BACKEND_URL = API_URL = "https://safedrive-ia.onrender.com";  
-
       try {
-        const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ dni, password })
@@ -153,7 +152,7 @@ function bindEvents(viewName) {
     if (driverEl) driverEl.innerText = sessionStorage.getItem("nombreConductor") || "Juan Pérez Gómez";
     if (unitEl) unitEl.innerText = sessionStorage.getItem("codigoUnidad") || "302-A";
 
-    // B. Reloj y fecha en vivo respetando el diseño original (formato 07:45 AM)
+    // B. Reloj y fecha en vivo  (formato 07:45 AM)
     function updateClock() {
       const now = new Date();
       const timeEl = document.getElementById("checklistTime");
@@ -185,7 +184,7 @@ function bindEvents(viewName) {
       clearInterval(clockInterval);
 
       try {
-        const res = await fetch(API_URL = "https://safedrive-ia.onrender.com/api/turnos/inicio", {
+        const res = await fetch(`${API_URL}/api/turnos/inicio`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -235,7 +234,7 @@ function bindEvents(viewName) {
     document.getElementById("btnEndShift")?.addEventListener("click", async () => {
       if (currentTurnoId) {
         try {
-          await fetch(API_URL = "https://safedrive-ia.onrender.com/api/turnos/" + currentTurnoId + "/fin", {
+          await fetch(`${API_URL}/api/turnos/${currentTurnoId}/fin`, {
             method: "PUT"
           });
           console.log(" Turno finalizado correctamente en BD");
@@ -267,7 +266,7 @@ function bindEvents(viewName) {
 
       try {
         console.log("🔍 Solicitando alertas a Render...");
-        const res = await fetch("https://safedrive-ia.onrender.com/api/alertas");
+        const res = await fetch(`${API_URL}/api/alertas`);
         
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -376,7 +375,7 @@ function bindEvents(viewName) {
     // Función asíncrona para consultar el resumen consolidado
     async function sincronizarDashboardSupervisor() {
       try {
-        const res = await fetch(API_URL = "https://safedrive-ia.onrender.com" + "/api/dashboard/supervisor");
+        const res = await fetch(`${API_URL}/api/dashboard/supervisor`);
         if (!res.ok) throw new Error("Error en servidor Spring Boot");
 
         const data = await res.json();

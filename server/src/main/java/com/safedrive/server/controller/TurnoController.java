@@ -41,6 +41,6 @@ public class TurnoController {
     // GET activos -> Ver conductores actualmente en ruta para el supervisor
     @GetMapping("/activos")
     public ResponseEntity<List<Turno>> listarTurnosActivos() {
-        return ResponseEntity.ok(turnoRepository.findByEstado("EN_RUTA"));
+        return ResponseEntity.ok(turnoRepository.findByEstadoTurno("activo"));
     }
 }
