@@ -76,6 +76,7 @@ export async function initAI() {
   }
 }
 
+
 export async function startCamera() {
   const video = document.getElementById("webcam");
   if (!video) return;
@@ -110,6 +111,7 @@ export async function startCamera() {
   }
 }
 
+
 export function stopCamera() {
   if (cameraStream) {
     cameraStream.getTracks().forEach((track) => track.stop());
@@ -118,9 +120,11 @@ export function stopCamera() {
   resetAlarm();
 }
 
+
 function dist(p1, p2) {
   return Math.hypot(p1.x - p2.x, p1.y - p2.y);
 }
+
 
 function calcEAR(pts, idx) {
   const v = dist(pts[idx[1]], pts[idx[5]]) + dist(pts[idx[2]], pts[idx[4]]);
@@ -128,11 +132,13 @@ function calcEAR(pts, idx) {
   return v / h;
 }
 
+
 function calcMAR(pts) {
   const v = dist(pts[MOUTH_POINTS[0]], pts[MOUTH_POINTS[1]]);
   const h = dist(pts[MOUTH_POINTS[2]], pts[MOUTH_POINTS[3]]);
   return v / h;
 }
+
 
 function runDetection() {
   const video = document.getElementById("webcam");
@@ -163,9 +169,9 @@ function runDetection() {
       console.warn("Error en detección:", err);
     }
   }
-
   requestAnimationFrame(runDetection);
 }
+
 
 function checkFatigue(ear, mar) {
   const now = Date.now();
@@ -200,6 +206,7 @@ function checkFatigue(ear, mar) {
   }
 }
 
+
 function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
   isFatigued = true;
   document.getElementById("alertOverlay")?.classList.remove("hidden");
@@ -226,12 +233,15 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
     alarmInterval = setInterval(beep, 400);
   }
 
+  // 1. Obtener datos de la sesión
   const turnoId = parseInt(sessionStorage.getItem("turnoId") || "1");
   const unidadId = parseInt(sessionStorage.getItem("unidadId") || "1");
   const conductorId = parseInt(sessionStorage.getItem("conductorId") || "1");
-  const codigoUnidad = sessionStorage.getItem("codigoUnidad") || "302-A";
-  const nombreConductor = sessionStorage.getItem("nombreConductor") || "Juan Pérez Gómez";
+  const unidad = sessionStorage.getItem("codigoUnidad") || "302-A";       // Renombrado a 'unidad'
+  const conductor = sessionStorage.getItem("nombreConductor") || "Juan Pérez Gómez"; // Renombrado a 'conductor'
 
+
+// 2. Enviar JSON con las claves exactas que espera Java
   fetch("https://safedrive-ia.onrender.com/api/alertas", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -239,11 +249,12 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
       turnoId: turnoId,
       unidadId: unidadId,
       conductorId: conductorId,
-      unidad: codigoUnidad,
-      conductor: nombreConductor,
-      tipoAlerta: tipoAlerta,
-      valorEar: parseFloat(valorNum.toFixed(2)),
-      duracionSegundos: 1.5
+      unidad: unidad,         
+      conductor: conductor, 
+      tipoAlerta: "Microsueño",
+      valorEar: earVal,
+      duracionSegundos:2.5,
+      tiempoReaccionSegundos: 1.2
     })
   })
   .then(res => res.json())

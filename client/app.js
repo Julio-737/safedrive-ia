@@ -266,43 +266,43 @@ function bindEvents(viewName) {
       const cntSemana = document.getElementById("cntSemana");
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000); // Timeout de 4s por si Render tarda
-
-        const res = await fetch("https://safedrive-ia.onrender.com/api/alertas", {
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
+        console.log("🔍 Solicitando alertas a Render...");
+        const res = await fetch("https://safedrive-ia.onrender.com/api/alertas");
+        
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const alertas = await res.json();
-        const lista = Array.isArray(alertas) ? alertas : [];
+        const data = await res.json();
+        console.log("📦 Alertas obtenidas desde Render:", data);
 
-        if (cntHoy) cntHoy.innerText = lista.length;
-        if (cntSemana) cntSemana.innerText = lista.length;
+        const alertas = Array.isArray(data) ? data : [];
 
-        if (lista.length > 0 && contenedor) {
-          contenedor.innerHTML = lista.map(a => {
+        if (cntHoy) cntHoy.innerText = alertas.length;
+        if (cntSemana) cntSemana.innerText = alertas.length;
+
+        if (alertas.length > 0 && contenedor) {
+          contenedor.innerHTML = alertas.map(a => {
             let horaFormateada = "Reciente";
+            
             if (a.fechaHora) {
               const d = new Date(a.fechaHora);
-              if (!isNaN(d)) {
+              if (!isNaN(d.getTime())) {
                 horaFormateada = d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", hour12: true });
               }
             }
 
-            const esBostezo = a.tipoAlerta && a.tipoAlerta.toLowerCase().includes("bostezo");
+            const tipo = a.tipoAlerta || "Microsueño";
+            const esBostezo = tipo.toLowerCase().includes("bostezo");
             const icono = esBostezo ? "🥱" : "⏱";
+            const unidadCodigo = a.unidad || "302-A";
 
             return `
-              <div class="card-blue d-flex justify-content-between align-items-center p-3" style="background: #132238; border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center;">
-                <div class="d-flex align-items-center gap-3" style="display: flex; align-items: center; gap: 12px;">
+              <div class="turn-summary-card p-3 d-flex justify-content-between align-items-center mb-2" style="background: #132238; border-radius: 12px; padding: 14px;">
+                <div class="d-flex align-items-center gap-3">
                   <span style="font-size: 1.5rem;">${icono}</span>
-                  <div class="text-start" style="text-align: left;">
-                    <strong style="color: #f8fafc; display: block; font-size: 0.95rem;">${a.tipoAlerta || 'Microsueño'}</strong>
-                    <span class="text-muted" style="font-size: 0.8rem; color: #94a3b8;">
-                      Duración: ${a.duracionSegundos || 1.5}s · Cabina Unidad ${a.unidad || '302-A'}
+                  <div class="text-start">
+                    <strong style="color: #f8fafc; display: block; font-size: 0.95rem;">${tipo}</strong>
+                    <span style="font-size: 0.8rem; color: #94a3b8;">
+                      Duración: ${a.duracionSegundos || 1.5}s · Cabina Unidad ${unidadCodigo}
                     </span>
                   </div>
                 </div>
@@ -311,19 +311,26 @@ function bindEvents(viewName) {
             `;
           }).join("");
         } else if (contenedor) {
-          contenedor.innerHTML = `<div class="card-blue text-center p-3 text-muted" style="background: #132238; border-radius: 12px; padding: 15px; color: #94a3b8;">No hay eventos de fatiga registrados en este turno.</div>`;
+          contenedor.innerHTML = `
+            <div class="turn-summary-card p-3 text-center text-muted" style="background: #132238; border-radius: 12px; padding: 15px;">
+              No hay eventos de fatiga registrados en este turno.
+            </div>`;
         }
       } catch (err) {
-        console.warn("No se pudo conectar con Render, mostrando estado de turno:", err);
+        console.warn("⚠️ Error cargando alertas:", err);
         if (cntHoy) cntHoy.innerText = "0";
         if (cntSemana) cntSemana.innerText = "0";
         if (contenedor) {
-          contenedor.innerHTML = `<div class="card-blue text-center p-3 text-muted" style="background: #132238; border-radius: 12px; padding: 15px; color: #94a3b8;">No hay eventos de fatiga registrados en este turno.</div>`;
+          contenedor.innerHTML = `
+            <div class="turn-summary-card p-3 text-center text-muted" style="background: #132238; border-radius: 12px; padding: 15px;">
+              No hay eventos de fatiga registrados en este turno.
+            </div>`;
         }
       }
     }
 
-    cargarAlertasConductor();
+    // Pequeña espera para asegurar que la vista esté renderizada en el DOM
+    setTimeout(cargarAlertasConductor, 50);
   }
 
 
