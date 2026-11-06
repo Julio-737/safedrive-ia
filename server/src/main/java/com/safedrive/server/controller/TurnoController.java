@@ -23,7 +23,7 @@ public class TurnoController {
     @PostMapping("/inicio")
     public ResponseEntity<Turno> iniciarTurno(@RequestBody Turno turno) {
         Turno nuevoTurno = turnoRepository.save(turno);
-        System.out.println("🚩 [TURNO INICIADO]: Conductor " + nuevoTurno.getNombreConductor() + " en unidad " + nuevoTurno.getUnidad());
+        System.out.println("🚩 [TURNO INICIADO]: Conductor " + nuevoTurno.getConductorId() + " en unidad " + nuevoTurno.getUnidadId());
         return ResponseEntity.ok(nuevoTurno);
     }
 
@@ -32,7 +32,6 @@ public class TurnoController {
     public ResponseEntity<Turno> finalizarTurno(@PathVariable Long id) {
         return turnoRepository.findById(id).map(turno -> {
             turno.setHoraFin(LocalDateTime.now());
-            turno.setEstado("FINALIZADO");
             Turno actualizado = turnoRepository.save(turno);
             System.out.println("🏁 [TURNO FINALIZADO]: ID " + id);
             return ResponseEntity.ok(actualizado);

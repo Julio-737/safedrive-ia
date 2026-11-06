@@ -27,7 +27,7 @@ public class AlertaController {
             alerta.setFechaHora(LocalDateTime.now());
         }
         AlertaFatiga guardada = alertaRepository.save(alerta);
-        System.out.println("🚨 [ALERTA GUARDADA]: Unidad " + guardada.getUnidad() + " - Conductor: " + guardada.getConductor());
+        System.out.println("🚨 [ALERTA GUARDADA]: Unidad " + guardada.getUnidadId());
         return ResponseEntity.ok(guardada);
     }
 
@@ -84,11 +84,11 @@ public class AlertaController {
         map.put("ruta", ruta);
 
         long incidentesUnidad = todas.stream()
-                .filter(a -> unidad.equalsIgnoreCase(a.getUnidad()))
+                .filter(a -> a.getUnidadId() != null && String.valueOf(a.getUnidadId()).equalsIgnoreCase(unidad))
                 .count();
 
         boolean tieneFatigaActiva = todas.stream()
-                .filter(a -> unidad.equalsIgnoreCase(a.getUnidad()))
+                .filter(a -> a.getUnidadId() != null && String.valueOf(a.getUnidadId()).equalsIgnoreCase(unidad))
                 .anyMatch(a -> a.getFechaHora() != null && a.getFechaHora().isAfter(limite));
 
         map.put("estado", tieneFatigaActiva ? "Fatiga" : "Normal");

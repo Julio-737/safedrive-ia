@@ -73,8 +73,8 @@ function bindEvents(viewName) {
         return;
       }
 
-      // Cambiar URL si pruebas en Render o local:
-      const BACKEND_URL = "http://localhost:8080"; // Cambiar por tu URL de Render si pruebas en la nube
+      
+      const BACKEND_URL = API_URL = "https://safedrive-ia.onrender.com";  
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
@@ -185,7 +185,7 @@ function bindEvents(viewName) {
       clearInterval(clockInterval);
 
       try {
-        const res = await fetch("http://localhost:8080/api/turnos/inicio", {
+        const res = await fetch(API_URL = "https://safedrive-ia.onrender.com/api/turnos/inicio", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -235,7 +235,7 @@ function bindEvents(viewName) {
     document.getElementById("btnEndShift")?.addEventListener("click", async () => {
       if (currentTurnoId) {
         try {
-          await fetch(`http://localhost:8080/api/turnos/${currentTurnoId}/fin`, {
+          await fetch(API_URL = "https://safedrive-ia.onrender.com/api/turnos/" + currentTurnoId + "/fin", {
             method: "PUT"
           });
           console.log(" Turno finalizado correctamente en BD");
@@ -376,7 +376,7 @@ function bindEvents(viewName) {
     // Función asíncrona para consultar el resumen consolidado
     async function sincronizarDashboardSupervisor() {
       try {
-        const res = await fetch("http://localhost:8080/api/alertas/dashboard-resumen");
+        const res = await fetch(API_URL = "https://safedrive-ia.onrender.com" + "/api/dashboard/supervisor");
         if (!res.ok) throw new Error("Error en servidor Spring Boot");
 
         const data = await res.json();

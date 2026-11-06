@@ -11,52 +11,72 @@ public class Turno {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String dniConductor;
+    @Column(name = "conductor_id", nullable = false)
+    private Integer conductorId;
 
-    @Column(nullable = false)
-    private String nombreConductor;
+    @Column(name = "unidad_id", nullable = false)
+    private Integer unidadId;
 
-    @Column(nullable = false)
-    private String unidad; //número de unidad o placa del vehículo
-
+    @Column(name = "ruta", nullable = false)
     private String ruta;
 
-    @Column(nullable = false)
+    @Column(name = "hora_inicio", nullable = false)
     private LocalDateTime horaInicio;
 
+    @Column(name = "hora_fin")
     private LocalDateTime horaFin;
 
-    private String estado; // muestra el estado del turno: "EN RUTA", "FINALIZADO"
+    @Column(name = "duracion_minutos")
+    private Integer duracionMinutos;
+
+    @Column(name = "horas_descanso_previas")
+    private Float horasDescansoPrevias;
+
+    @Column(name = "estado_turno", length = 20)
+    private String estadoTurno; 
 
     public Turno() {
         this.horaInicio = LocalDateTime.now();
-        this.estado = "EN_RUTA";
+        this.estadoTurno = "activo";
+        this.duracionMinutos = 0;
+        this.horasDescansoPrevias = 7.5f;
     }
 
-    public Turno(String dniConductor, String nombreConductor, String unidad, String ruta) {
-        this.dniConductor = dniConductor;
-        this.nombreConductor = nombreConductor;
-        this.unidad = unidad;
+    public Turno(Integer conductorId, Integer unidadId, String ruta) {
+        this.conductorId = conductorId;
+        this.unidadId = unidadId;
         this.ruta = ruta;
         this.horaInicio = LocalDateTime.now();
-        this.estado = "EN_RUTA";
+        this.estadoTurno = "activo";
+        this.duracionMinutos = 0;
+        this.horasDescansoPrevias = 7.5f;
     }
 
     // Getters y Setters
     public Long getId() { return id; }
-    public String getDniConductor() { return dniConductor; }
-    public void setDniConductor(String dniConductor) { this.dniConductor = dniConductor; }
-    public String getNombreConductor() { return nombreConductor; }
-    public void setNombreConductor(String nombreConductor) { this.nombreConductor = nombreConductor; }
-    public String getUnidad() { return unidad; }
-    public void setUnidad(String unidad) { this.unidad = unidad; }
+    public void setId(Long id) { this.id = id; }
+
+    public Integer getConductorId() { return conductorId; }
+    public void setConductorId(Integer conductorId) { this.conductorId = conductorId; }
+
+    public Integer getUnidadId() { return unidadId; }
+    public void setUnidadId(Integer unidadId) { this.unidadId = unidadId; }
+
     public String getRuta() { return ruta; }
     public void setRuta(String ruta) { this.ruta = ruta; }
+
     public LocalDateTime getHoraInicio() { return horaInicio; }
     public void setHoraInicio(LocalDateTime horaInicio) { this.horaInicio = horaInicio; }
+
     public LocalDateTime getHoraFin() { return horaFin; }
     public void setHoraFin(LocalDateTime horaFin) { this.horaFin = horaFin; }
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+
+    public Integer getDuracionMinutos() { return duracionMinutos; }
+    public void setDuracionMinutos(Integer duracionMinutos) { this.duracionMinutos = duracionMinutos; }
+
+    public Float getHorasDescansoPrevias() { return horasDescansoPrevias; }
+    public void setHorasDescansoPrevias(Float horasDescansoPrevias) { this.horasDescansoPrevias = horasDescansoPrevias; }
+
+    public String getEstadoTurno() { return estadoTurno; }
+    public void setEstadoTurno(String estadoTurno) { this.estadoTurno = estadoTurno; }
 }
