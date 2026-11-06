@@ -181,7 +181,7 @@ function checkFatigue(ear, mar) {
   if (isEyeClosed) {
     if (!eyesClosedStart) eyesClosedStart = now;
     else if (now - eyesClosedStart >= FATIGUE_MS && !isFatigued) {
-      triggerAlarm(ear, "Microsueño", "Microsueño detectado en cabina (> 1.5s)");
+      triggerAlarm(ear, "Microsueno", "Microsueno detectado en cabina (> 1.5s)");
       return;
     }
   } else {
@@ -193,7 +193,8 @@ function checkFatigue(ear, mar) {
   if (isMouthOpen) {
     if (!mouthOpenStart) mouthOpenStart = now;
     else if (now - mouthOpenStart >= YAWN_MS && !isFatigued) {
-      triggerAlarm(mar, "Bostezo Profundo", "Bostezo frecuente / fatiga inicial detectada");
+      // CORRECCIÓN: Debe coincidir exactamente con la base de datos
+      triggerAlarm(mar, "Bostezo frecuente", "Bostezo frecuente / fatiga inicial detectada");
       return;
     }
   } else {
@@ -207,7 +208,7 @@ function checkFatigue(ear, mar) {
 }
 
 
-function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
+function triggerAlarm(valorNum, tipoAlerta = "Microsueno", mensaje = "") {
   isFatigued = true;
   document.getElementById("alertOverlay")?.classList.remove("hidden");
   
@@ -237,11 +238,8 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
   const turnoId = parseInt(sessionStorage.getItem("turnoId") || "1");
   const unidadId = parseInt(sessionStorage.getItem("unidadId") || "1");
   const conductorId = parseInt(sessionStorage.getItem("conductorId") || "1");
-  const unidad = sessionStorage.getItem("codigoUnidad") || "302-A";       // Renombrado a 'unidad'
-  const conductor = sessionStorage.getItem("nombreConductor") || "Juan Pérez Gómez"; // Renombrado a 'conductor'
 
-
-// 2. Enviar JSON con las claves exactas que espera Java
+  // 2. Enviar JSON con las claves exactas
   fetch("https://safedrive-ia.onrender.com/api/alertas", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -249,11 +247,9 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueño", mensaje = "") {
       turnoId: turnoId,
       unidadId: unidadId,
       conductorId: conductorId,
-      unidad: unidad,         
-      conductor: conductor, 
-      tipoAlerta: "Microsueño",
-      valorEar: earVal,
-      duracionSegundos:2.5,
+      tipoAlerta: tipoAlerta, // CORRECCIÓN: Usamos la variable dinámica
+      valorEar: valorNum,     // CORRECCIÓN: Usamos la variable correcta
+      duracionSegundos: 2.5,
       tiempoReaccionSegundos: 1.2
     })
   })
@@ -285,4 +281,5 @@ function resetAlarm() {
     clearInterval(alarmInterval);
     alarmInterval = null;
   }
-}
+  
+} 
