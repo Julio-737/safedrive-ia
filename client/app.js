@@ -1,7 +1,7 @@
 import { initAI, startCamera, stopCamera } from "./src/ai/fatigueDetector.js";
 import { initSupervisorView } from "./src/ai/supervisor/supervisor.js";
 
-const API_URL = "http://127.0.0.1:8080";
+import { API_URL } from "./config.js";
 
 const viewport = document.getElementById("app-viewport");
 let shiftTimerInterval = null;

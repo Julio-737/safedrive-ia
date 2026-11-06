@@ -1,4 +1,5 @@
 import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/+esm";
+import { API_URL } from "../../config.js";
 
 let faceLandmarker = null;
 let cameraStream = null;
@@ -245,7 +246,7 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueno", mensaje = "") {
   const conductorId = parseInt(sessionStorage.getItem("conductorId") || "1");
 
   // 2. Enviar JSON con las claves exactas
-  fetch("https://safedrive-ia.onrender.com/api/alertas", {
+  fetch(`${API_URL}/api/alertas`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
