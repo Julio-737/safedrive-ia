@@ -20,7 +20,7 @@ public class AlertaFatiga {
     @Column(nullable = false)
     private String tipoAlerta; 
 
-    private Double earCalculado; // Valor del EAR al disparar
+    private Float valorEar; // Valor del EAR al disparar
 
     private LocalDateTime fechaHora;
 
@@ -28,11 +28,11 @@ public class AlertaFatiga {
         this.fechaHora = LocalDateTime.now();
     }
 
-    public AlertaFatiga(String unidad, String conductor, String tipoAlerta, Double earCalculado) {
+    public AlertaFatiga(String unidad, String conductor, String tipoAlerta, Float valorEar) {
         this.unidad = unidad;
         this.conductor = conductor;
         this.tipoAlerta = tipoAlerta;
-        this.earCalculado = earCalculado;
+        this.valorEar = valorEar;
         this.fechaHora = LocalDateTime.now();
     }
 
@@ -44,8 +44,8 @@ public class AlertaFatiga {
     public void setConductor(String conductor) { this.conductor = conductor; }
     public String getTipoAlerta() { return tipoAlerta; }
     public void setTipoAlerta(String tipoAlerta) { this.tipoAlerta = tipoAlerta; }
-    public Double getEarCalculado() { return earCalculado; }
-    public void setEarCalculado(Double earCalculado) { this.earCalculado = earCalculado; }
+    public Float getValorEar() { return valorEar; }
+    public void setValorEar(Float valorEar) { this.valorEar = valorEar; }
     public LocalDateTime getFechaHora() { return fechaHora; }
     public void setFechaHora(LocalDateTime fechaHora) { this.fechaHora = fechaHora; }
 }
