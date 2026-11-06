@@ -1,98 +1,133 @@
 package com.safedrive.server.controller;
 
-import com.safedrive.server.model.AlertaFatiga;
-import com.safedrive.server.repository.AlertaFatigaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import javax.sql.DataSource;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+/**
+ * Recibe las alertas del detector de fatiga y las guarda en la tabla REAL alertas_fatiga
+ * (con unidad_id y conductor_id). Acepta el mismo JSON que ya envía fatigueDetector.js.
+ */
 @RestController
 @RequestMapping("/api/alertas")
-@CrossOrigin(origins = "*") // Permite peticiones desde el Live Server (http://127.0.0.1:5500)
+@CrossOrigin(origins = "*")
 public class AlertaController {
 
-    private final AlertaFatigaRepository alertaRepository;
+    private final JdbcTemplate jdbc;
 
-    public AlertaController(AlertaFatigaRepository alertaRepository) {
-        this.alertaRepository = alertaRepository;
+    public AlertaController(DataSource dataSource) {
+        this.jdbc = new JdbcTemplate(dataSource);
     }
 
-    // Endpoint POST: Recibe la alerta de la cámara en vivo (lo dejas tal cual)
     @PostMapping
-    public ResponseEntity<AlertaFatiga> registrarAlerta(@RequestBody AlertaFatiga alerta) {
-        if (alerta.getFechaHora() == null) {
-            alerta.setFechaHora(LocalDateTime.now());
+    public ResponseEntity<?> registrarAlerta(@RequestBody Map<String, Object> body) {
+        // 1) Unidad: primero por código ("302-A"), si no por unidadId
+        Long unidadId = null;
+        String codigo = texto(body.get("codigoUnidad"));
+        if (codigo == null) codigo = texto(body.get("unidad"));
+        if (codigo != null) {
+            unidadId = buscarId("SELECT id FROM unidades WHERE lower(codigo_unidad) = lower(?)", codigo);
         }
-        AlertaFatiga guardada = alertaRepository.save(alerta);
-        System.out.println("🚨 [ALERTA GUARDADA]: Unidad " + guardada.getUnidadId());
-        return ResponseEntity.ok(guardada);
+        if (unidadId == null) unidadId = numero(body.get("unidadId"));
+
+        // 2) Conductor: primero por nombre (viene del login), si no por conductorId
+        Long conductorId = null;
+        String nombre = texto(body.get("nombreConductor"));
+        if (nombre == null) nombre = texto(body.get("conductor"));
+        if (nombre != null) {
+            conductorId = buscarId("""
+                    SELECT c.id FROM conductores c JOIN usuarios u ON u.id = c.usuario_id
+                    WHERE lower(u.nombre_completo) = lower(?)""", nombre);
+        }
+        if (conductorId == null) conductorId = numero(body.get("conductorId"));
+
+        if (unidadId == null || conductorId == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se encontró la unidad o el conductor de la alerta"));
+        }
+
+        // 3) Turno (opcional): solo si existe, para no romper la clave foránea
+        Long turnoId = numero(body.get("turnoId"));
+        if (turnoId != null && buscarId("SELECT id FROM turnos WHERE id = ?", turnoId) == null) turnoId = null;
+
+        String tipo = normalizarTipo(texto(body.get("tipoAlerta")));
+        Double ear = decimal(body.get("valorEar"));
+        if (ear == null) ear = decimal(body.get("earCalculado"));
+        if (ear != null && (ear < 0 || ear > 99)) ear = null;
+        Double reaccion = decimal(body.get("tiempoReaccionSegundos"));
+        String tramo = texto(body.get("tramoRuta"));
+
+        Long id = jdbc.queryForObject("""
+                INSERT INTO alertas_fatiga
+                    (turno_id, unidad_id, conductor_id, tipo_alerta, valor_ear, ear_calculado,
+                     tiempo_reaccion_segundos, tramo_ruta, fecha_hora)
+                VALUES (?::integer, ?::integer, ?::integer, ?, ?::numeric, ?::float8,
+                        COALESCE(?::numeric, 1.2), COALESCE(?::varchar, 'Puente Nuevo'), ?)
+                RETURNING id""",
+                Long.class, turnoId, unidadId, conductorId, tipo, ear, ear, reaccion, tramo,
+                Timestamp.valueOf(LocalDateTime.now()));
+
+        System.out.println("🚨 [ALERTA GUARDADA] id=" + id + " unidad=" + codigo + " conductor=" + nombre + " tipo=" + tipo);
+
+        Map<String, Object> r = new LinkedHashMap<>();
+        r.put("id", id);
+        r.put("unidadId", unidadId);
+        r.put("conductorId", conductorId);
+        r.put("tipoAlerta", tipo);
+        r.put("valorEar", ear);
+        return ResponseEntity.status(HttpStatus.OK).body(r);
     }
 
-    // Endpoint GET: Obtener todas las alertas en bruto
+    // Últimas 100 alertas (con nombres de unidad y conductor)
     @GetMapping
-    public ResponseEntity<List<AlertaFatiga>> listarAlertas() {
-        return ResponseEntity.ok(alertaRepository.findAll());
+    public List<Map<String, Object>> listarAlertas() {
+        return jdbc.queryForList("""
+                SELECT a.id, u.codigo_unidad AS unidad, us.nombre_completo AS conductor, a.tipo_alerta AS "tipoAlerta",
+                       COALESCE(a.valor_ear::float8, a.ear_calculado) AS ear, a.tramo_ruta AS tramo,
+                       to_char(a.fecha_hora, 'YYYY-MM-DD"T"HH24:MI:SS') AS "fechaHora"
+                FROM alertas_fatiga a
+                JOIN unidades u ON u.id = a.unidad_id
+                JOIN conductores c ON c.id = a.conductor_id
+                JOIN usuarios us ON us.id = c.usuario_id
+                ORDER BY a.fecha_hora DESC
+                LIMIT 100""");
     }
 
-    // Endpoint GET nuevo: Datos consolidados para el Dashboard del Supervisor
-    @GetMapping("/dashboard-resumen")
-    public ResponseEntity<Map<String, Object>> obtenerResumenDashboard() {
-        Map<String, Object> respuesta = new HashMap<>();
-
-        // Traemos todas las alertas de la base de datos
-        List<AlertaFatiga> todas = alertaRepository.findAll();
-
-        // 1. Contar alertas ocurridas el día de hoy
-        LocalDate hoy = LocalDate.now();
-        long alertasHoy = todas.stream()
-                .filter(a -> a.getFechaHora() != null && a.getFechaHora().toLocalDate().isEqual(hoy))
-                .count();
-
-        // 2. Últimas 5 alertas para el feed en vivo (las más recientes primero)
-        List<AlertaFatiga> ultimas = new ArrayList<>(todas);
-        Collections.reverse(ultimas);
-        if (ultimas.size() > 5) {
-            ultimas = ultimas.subList(0, 5);
-        }
-
-        // 3. Determinar el estado de cada unidad de la flota (San Juan de Lurigancho)
-        LocalDateTime haceDiezMinutos = LocalDateTime.now().minusMinutes(10);
-        
-        List<Map<String, Object>> flota = Arrays.asList(
-            armarFilaUnidad("302-A", "J. Pérez Gómez", "SJL - Cercado", todas, haceDiezMinutos),
-            armarFilaUnidad("302-B", "L. Ramos Quispe", "SJL - Cercado", todas, haceDiezMinutos),
-            armarFilaUnidad("302-C", "M. Ticona Flores", "Cercado - SJL", todas, haceDiezMinutos),
-            armarFilaUnidad("302-D", "A. Rojas Medina", "SJL - Cercado", todas, haceDiezMinutos),
-            armarFilaUnidad("302-E", "R. Huamán Silva", "Cercado - SJL", todas, haceDiezMinutos)
-        );
-
-        respuesta.put("totalAlertasHoy", alertasHoy);
-        respuesta.put("ultimasAlertas", ultimas);
-        respuesta.put("flota", flota);
-
-        return ResponseEntity.ok(respuesta);
+    // ---------- auxiliares ----------
+    /** La base solo acepta estos 3 tipos (CHECK constraint). */
+    private String normalizarTipo(String t) {
+        if (t == null) return "Microsueño";
+        String s = t.toLowerCase();
+        if (s.contains("bostez")) return "Bostezo frecuente";
+        if (s.contains("inclin")) return "Inclinacion cabeza";
+        return "Microsueño";
     }
 
-    // Método auxiliar para cruzar datos de cada bus con sus alertas en Supabase
-    private Map<String, Object> armarFilaUnidad(String unidad, String conductor, String ruta, List<AlertaFatiga> todas, LocalDateTime limite) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("unidad", unidad);
-        map.put("conductor", conductor);
-        map.put("ruta", ruta);
+    private Long buscarId(String sql, Object arg) {
+        List<Long> r = jdbc.query(sql, (rs, i) -> rs.getLong(1), arg);
+        return r.isEmpty() ? null : r.get(0);
+    }
 
-        long incidentesUnidad = todas.stream()
-                .filter(a -> a.getUnidadId() != null && String.valueOf(a.getUnidadId()).equalsIgnoreCase(unidad))
-                .count();
+    private static String texto(Object o) {
+        if (o == null) return null;
+        String s = o.toString().trim();
+        return s.isEmpty() ? null : s;
+    }
 
-        boolean tieneFatigaActiva = todas.stream()
-                .filter(a -> a.getUnidadId() != null && String.valueOf(a.getUnidadId()).equalsIgnoreCase(unidad))
-                .anyMatch(a -> a.getFechaHora() != null && a.getFechaHora().isAfter(limite));
+    private static Long numero(Object o) {
+        if (o instanceof Number n) return n.longValue();
+        try { return o == null ? null : Long.parseLong(o.toString().trim()); } catch (NumberFormatException e) { return null; }
+    }
 
-        map.put("estado", tieneFatigaActiva ? "Fatiga" : "Normal");
-        map.put("totalAlertas", incidentesUnidad);
-        return map;
+    private static Double decimal(Object o) {
+        if (o instanceof Number n) return n.doubleValue();
+        try { return o == null ? null : Double.parseDouble(o.toString().trim()); } catch (NumberFormatException e) { return null; }
     }
 }

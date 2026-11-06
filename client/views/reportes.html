@@ -1,42 +1,54 @@
 <div class="supervisor-layout">
   <aside class="sidebar">
-    <div class="brand"><span class="logo">🚌</span><h2>SafeDrive IA</h2></div>
+    <div class="brand">
+      <span class="logo">🚌</span>
+      <h2>SafeDrive IA</h2>
+    </div>
     <nav class="nav-menu">
       <a href="#" id="menuDash" class="nav-item">📊 Panel General</a>
+      <a href="#" id="menuFlota" class="nav-item">🚐 Unidades / Flota</a>
       <a href="#" id="menuReportes" class="nav-item active">📈 Reportes</a>
+      <a href="#" id="menuCentroIa" class="nav-item">⚡ Centro IA</a>
     </nav>
     <button id="btnSupervisorLogout" class="btn-logout">Cerrar Sesión</button>
   </aside>
 
   <main class="main-content">
     <div class="top-bar">
-      <h1>Reportes y Estadísticas de Flota</h1>
+      <div>
+        <h1>Reportes y Estadísticas de Flota</h1>
+        <span id="connStatus" class="conn-status">● Conectando...</span>
+      </div>
       <div class="btn-group">
-        <button class="btn-sm active">Semana</button>
-        <button class="btn-sm">Mes</button>
+        <button id="btnSemana" class="btn-sm active">Semana</button>
+        <button id="btnMes" class="btn-sm">Mes</button>
+        <button id="btnExportar" class="btn-sm btn-sec">⬇ Exportar CSV</button>
       </div>
     </div>
 
     <div class="dashboard-split">
       <div class="panel-box">
-        <h3>Alertas por Día (Últimos 7 días)</h3>
-        <div class="bar-chart-mock">
-          <div class="bar-col"><div class="bar" style="height: 50%;">3</div><span>Lun</span></div>
-          <div class="bar-col"><div class="bar" style="height: 80%;">5</div><span>Mar</span></div>
-          <div class="bar-col"><div class="bar" style="height: 35%;">2</div><span>Mié</span></div>
-          <div class="bar-col"><div class="bar red" style="height: 100%;">6</div><span>Jue</span></div>
-          <div class="bar-col"><div class="bar" style="height: 65%;">4</div><span>Vie</span></div>
-          <div class="bar-col"><div class="bar" style="height: 20%;">1</div><span>Sáb</span></div>
-        </div>
+        <h3 id="repTitulo">Alertas por Día (Últimos 7 días)</h3>
+        <div class="bar-chart-mock" id="repBars"></div>
+        <small class="text-muted mt-2" id="repResumen" style="display:block;">Cargando...</small>
       </div>
 
       <div class="panel-box">
         <h3>Tipos de Eventos</h3>
-        <ul class="activity-feed">
-          <li><strong>55%</strong> Microsueño (Ojos cerrados)</li>
-          <li><strong>30%</strong> Bostezo sostenido</li>
-          <li><strong>15%</strong> Inclinación de cabeza</li>
+        <ul class="activity-feed" id="repTipos">
+          <li class="feed-empty">Cargando...</li>
         </ul>
+      </div>
+    </div>
+
+    <div class="dashboard-split split-even mt-2">
+      <div class="panel-box">
+        <h3>Unidades con más alertas</h3>
+        <div id="repUnidades"></div>
+      </div>
+      <div class="panel-box">
+        <h3>Conductores con más alertas</h3>
+        <div id="repConductores"></div>
       </div>
     </div>
   </main>

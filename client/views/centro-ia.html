@@ -1,8 +1,13 @@
 <div class="supervisor-layout">
   <aside class="sidebar">
-    <div class="brand"><span class="logo">🚌</span><h2>SafeDrive IA</h2></div>
+    <div class="brand">
+      <span class="logo">🚌</span>
+      <h2>SafeDrive IA</h2>
+    </div>
     <nav class="nav-menu">
       <a href="#" id="menuDash" class="nav-item">📊 Panel General</a>
+      <a href="#" id="menuFlota" class="nav-item">🚐 Unidades / Flota</a>
+      <a href="#" id="menuReportes" class="nav-item">📈 Reportes</a>
       <a href="#" id="menuCentroIa" class="nav-item active">⚡ Centro IA</a>
     </nav>
     <button id="btnSupervisorLogout" class="btn-logout">Cerrar Sesión</button>
@@ -11,8 +16,9 @@
   <main class="main-content">
     <div class="top-bar">
       <div>
-        <h1>Centro de Inteligencia IA <span class="badge en-ruta">Análisis predictivo</span></h1>
-        <p class="text-muted">Recomendaciones automáticas según el historial de ruta en San Juan de Lurigancho</p>
+        <h1>Centro de Inteligencia IA <span class="badge en-ruta">Análisis automático</span></h1>
+        <p class="text-muted">Recomendaciones según el historial de alertas de los últimos 7 días</p>
+        <span id="connStatus" class="conn-status">● Conectando...</span>
       </div>
     </div>
 
@@ -20,26 +26,18 @@
       <div class="panel-box">
         <h3>Mapa de Calor — Fatiga por tramo de ruta y hora</h3>
         <table class="data-table heat-table">
-          <thead>
-            <tr><th>TRAMO</th><th>7-9am</th><th>9-11am</th><th>1-3pm</th><th>3-5pm</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>SJL Inicio</td><td class="h-low">2</td><td class="h-low">4</td><td class="h-high">9</td><td class="h-med">6</td></tr>
-            <tr><td>Puente Nuevo</td><td class="h-low">1</td><td class="h-low">3</td><td class="h-crit">12</td><td class="h-high">8</td></tr>
-            <tr><td>El Agustino</td><td class="h-low">0</td><td class="h-low">1</td><td class="h-med">6</td><td class="h-low">3</td></tr>
-            <tr><td>Cercado</td><td class="h-low">1</td><td class="h-low">2</td><td class="h-high">7</td><td class="h-med">5</td></tr>
+          <thead id="heatHead"></thead>
+          <tbody id="heatBody">
+            <tr><td style="text-align:center;color:#8fa0c0;">Cargando...</td></tr>
           </tbody>
         </table>
-        <small class="text-muted mt-2 block">
-          * Hallazgo automático: El 68% de las alertas se concentran entre 1:00 PM y 3:00 PM en el tramo Puente Nuevo (somnolencia postprandial).
-        </small>
+        <small class="text-muted mt-2" id="hallazgo" style="display:block;">Cargando...</small>
       </div>
 
       <div class="panel-box">
         <h3>Recomendaciones Preventivas</h3>
-        <ul class="activity-feed">
-          <li><strong>Conductor L. Ramos:</strong> 3 alertas en turno tarde. Sugerir cambio a turno mañana.</li>
-          <li><strong>Unidad 302-B:</strong> Pausa obligatoria a las 12:30 PM antes del tramo crítico.</li>
+        <ul class="activity-feed" id="recomendaciones">
+          <li class="feed-empty">Cargando...</li>
         </ul>
       </div>
     </div>

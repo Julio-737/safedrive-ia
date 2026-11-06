@@ -223,6 +223,11 @@ function triggerAlarm(valorNum, tipoAlerta = "Microsueno", mensaje = "") {
     alertCounterEl.innerText = parseInt(alertCounterEl.innerText || 0) + 1;
   }
 
+  sessionStorage.setItem(
+  "alertasTurno",
+  String(parseInt(sessionStorage.getItem("alertasTurno") || "0") + 1)
+);
+
   const banner = document.getElementById("alertBanner");
   if (banner) {
     banner.className = "alert-banner critico";

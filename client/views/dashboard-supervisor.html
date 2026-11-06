@@ -7,7 +7,6 @@
     <nav class="nav-menu">
       <a href="#" id="menuDash" class="nav-item active">📊 Panel General</a>
       <a href="#" id="menuFlota" class="nav-item">🚐 Unidades / Flota</a>
-      <a href="#" id="menuDetalle" class="nav-item">👨‍✈️ Conductores</a>
       <a href="#" id="menuReportes" class="nav-item">📈 Reportes</a>
       <a href="#" id="menuCentroIa" class="nav-item">⚡ Centro IA</a>
     </nav>
@@ -19,29 +18,30 @@
       <div>
         <h1>Panel de Supervisión de Flota</h1>
         <p class="text-muted">ETSJL S.A.C. — Turno Actual en Tiempo Real</p>
+        <span id="connStatus" class="conn-status">● Conectando...</span>
       </div>
       <div class="user-profile">
-        <span class="avatar">MP</span>
-        <span>Mitsy Paz (Supervisor)</span>
+        <span class="avatar" id="perfilAvatar">SV</span>
+        <span id="perfilNombre">Supervisor</span>
       </div>
     </div>
 
     <div class="kpi-cards-grid">
       <div class="kpi-card">
         <span class="kpi-icon">🚐</span>
-        <div><span class="title">UNIDADES ACTIVAS</span><h3>18/20</h3><small class="text-green">▲ 90% operativas</small></div>
+        <div><span class="title">UNIDADES EN RUTA</span><h3 id="kpiUnidades">-</h3><small class="text-green" id="kpiUnidadesSub">Cargando...</small></div>
       </div>
-      <div class="kpi-card">
+      <div class="kpi-card" id="kpiAlertasCard">
         <span class="kpi-icon">⚠</span>
-        <div><span class="title">ALERTAS DE FATIGA HOY</span><h3 id="supKpiAlerts">0</h3><small class="text-red">Críticas registradas</small></div>
+        <div><span class="title">ALERTAS DE FATIGA HOY</span><h3 id="supKpiAlerts">-</h3><small class="text-red" id="kpiAlertasSub">Cargando...</small></div>
       </div>
       <div class="kpi-card">
         <span class="kpi-icon">⏱</span>
-        <div><span class="title">TIEMPO REACCIÓN PROM.</span><h3>1.2 s</h3><small class="text-green">✔ Dentro del SLA</small></div>
+        <div><span class="title">TIEMPO REACCIÓN PROM.</span><h3 id="kpiReaccion">-</h3><small class="text-green" id="kpiReaccionSub">Cargando...</small></div>
       </div>
       <div class="kpi-card">
         <span class="kpi-icon">👨‍✈️</span>
-        <div><span class="title">CONDUCTORES</span><h3>35</h3><small>100% monitoreados</small></div>
+        <div><span class="title">CONDUCTORES</span><h3 id="kpiConductores">-</h3><small class="text-muted" id="kpiConductoresSub">Cargando...</small></div>
       </div>
     </div>
 
@@ -50,22 +50,18 @@
         <h3>Unidades en ruta — San Juan de Lurigancho</h3>
         <table class="data-table">
           <thead>
-            <tr><th>UNIDAD</th><th>CONDUCTOR</th><th>RUTA</th><th>ESTADO</th><th>ACCIÓN</th></tr>
+            <tr><th>UNIDAD</th><th>CONDUCTOR</th><th>RUTA</th><th>ESTADO</th><th>ALERTAS HOY</th><th>ACCIÓN</th></tr>
           </thead>
-          <!-- CAMBIO 1: El cuerpo ahora tiene ID para recibir los datos de Spring Boot -->
           <tbody id="tablaFlotaBody">
-            <tr>
-              <td colspan="5" style="text-align: center; color: #8fa0c0;">Cargando unidades desde la base de datos...</td>
-            </tr>
+            <tr><td colspan="6" style="text-align:center;color:#8fa0c0;">Cargando unidades desde la base de datos...</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="panel-box log-box">
         <h3>Feed de Alertas en Vivo</h3>
-        <!-- CAMBIO 2: La lista ahora tiene ID para recibir las alertas en tiempo real -->
         <ul class="activity-feed" id="feedAlertasSupervisor">
-          <li style="color: #8fa0c0;">Cargando alertas recientes...</li>
+          <li class="feed-empty">Cargando alertas recientes...</li>
         </ul>
       </div>
     </div>

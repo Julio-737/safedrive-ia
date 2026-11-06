@@ -1,9 +1,14 @@
 <div class="supervisor-layout">
   <aside class="sidebar">
-    <div class="brand"><span class="logo">🚌</span><h2>SafeDrive IA</h2></div>
+    <div class="brand">
+      <span class="logo">🚌</span>
+      <h2>SafeDrive IA</h2>
+    </div>
     <nav class="nav-menu">
-      <a href="#" id="menuDash" class="nav-item">📊 Panel General</a>
+      <a href="#" id="menuDash" class="nav-item active">📊 Panel General</a>
       <a href="#" id="menuFlota" class="nav-item">🚐 Unidades / Flota</a>
+      <a href="#" id="menuReportes" class="nav-item">📈 Reportes</a>
+      <a href="#" id="menuCentroIa" class="nav-item">⚡ Centro IA</a>
     </nav>
     <button id="btnSupervisorLogout" class="btn-logout">Cerrar Sesión</button>
   </aside>
@@ -11,30 +16,39 @@
   <main class="main-content">
     <div class="top-bar">
       <div>
-        <h2>Juan Pérez Gómez — DNI: 76543210</h2>
-        <span class="badge en-ruta">Unidad 302-A · Turno Mañana · Activo</span>
+        <h2 id="dtNombre">Cargando conductor...</h2>
+        <span class="badge en-ruta" id="dtMeta">—</span><br />
+        <span id="connStatus" class="conn-status">● Conectando...</span>
       </div>
       <button id="btnVolverDash" class="btn-primary">⬅ Volver al Panel</button>
     </div>
 
     <div class="kpi-cards-grid">
-      <div class="kpi-card"><div><span class="title">ALERTAS ESTE MES</span><h3>9</h3></div></div>
-      <div class="kpi-card"><div><span class="title">HORAS MONITOREADAS</span><h3>142 h</h3></div></div>
-      <div class="kpi-card"><div><span class="title">TIEMPO REACCIÓN</span><h3>1.1 s</h3></div></div>
-      <div class="kpi-card"><div><span class="title">ANTIGÜEDAD</span><h3>2.5 años</h3></div></div>
+      <div class="kpi-card"><div><span class="title">ALERTAS ESTE MES</span><h3 id="dtAlertasMes">-</h3></div></div>
+      <div class="kpi-card"><div><span class="title">HORAS MONITOREADAS (MES)</span><h3 id="dtHoras">-</h3></div></div>
+      <div class="kpi-card"><div><span class="title">TIEMPO REACCIÓN PROM.</span><h3 id="dtEar">-</h3></div></div>
+      <div class="kpi-card"><div><span class="title">ANTIGÜEDAD</span><h3 id="dtDesde">-</h3></div></div>
     </div>
 
-    <div class="panel-box mt-2">
-      <h3>Historial de Turnos Recientes</h3>
-      <table class="data-table">
-        <thead>
-          <tr><th>FECHA</th><th>UNIDAD</th><th>DURACIÓN</th><th>ALERTAS</th><th>ESTADO</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>09/09</td><td>302-A</td><td>8h 10m</td><td>1</td><td><span class="badge-status ok">Normal</span></td></tr>
-          <tr><td>08/09</td><td>302-A</td><td>7h 55m</td><td>2</td><td><span class="badge-status ok">Normal</span></td></tr>
-        </tbody>
-      </table>
+    <div class="dashboard-split mt-2">
+      <div class="panel-box">
+        <h3>Historial de Turnos Recientes</h3>
+        <table class="data-table">
+          <thead>
+            <tr><th>FECHA</th><th>UNIDAD</th><th>DURACIÓN</th><th>ALERTAS</th><th>ESTADO</th></tr>
+          </thead>
+          <tbody id="dtTurnos">
+            <tr><td colspan="5" style="text-align:center;color:#8fa0c0;">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel-box">
+        <h3>Últimas alertas del conductor</h3>
+        <ul class="activity-feed" id="dtAlertas">
+          <li class="feed-empty">Cargando...</li>
+        </ul>
+      </div>
     </div>
   </main>
 </div>

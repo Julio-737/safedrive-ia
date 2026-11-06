@@ -1,4 +1,5 @@
 import { initAI, startCamera, stopCamera } from "./src/ai/fatigueDetector.js";
+import { initSupervisorView } from "./src/ai/supervisor/supervisor.js";
 
 const API_URL = "http://127.0.0.1:8080";
 
@@ -208,6 +209,8 @@ function bindEvents(viewName) {
       }
 
       shiftStartTime = new Date();
+      sessionStorage.setItem("turnoInicio", shiftStartTime.toISOString());
+      sessionStorage.setItem("alertasTurno", "0");
       navigateTo("monitoreo");
     });
   }
@@ -241,6 +244,8 @@ function bindEvents(viewName) {
         } catch (err) {
           console.warn("Error al finalizar turno en servidor", err);
         }
+        sessionStorage.setItem("turnoFin", new Date().toISOString());
+        navigateTo("fin-turno");
       }
       navigateTo("fin-turno");
     });
@@ -334,7 +339,32 @@ function bindEvents(viewName) {
 
 
   // 6. FIN DE TURNO
+  
   if (viewName === "fin-turno") {
+    const inicio = new Date(sessionStorage.getItem("turnoInicio") || Date.now());
+    const fin = new Date(sessionStorage.getItem("turnoFin") || Date.now());
+    const alertas = parseInt(sessionStorage.getItem("alertasTurno") || "0");
+
+    const totalSeg = Math.max(1, Math.floor((fin - inicio) / 1000));
+    const h = Math.floor(totalSeg / 3600);
+    const m = Math.floor((totalSeg % 3600) / 60);
+    const s = totalSeg % 60;
+
+    // Cada alerta se registra con 2.5 s de duración (igual que fatigueDetector.js)
+    const segFatiga = alertas * 2.5;
+    const pctNormal = Math.max(0, 100 - (segFatiga / totalSeg) * 100);
+
+    const hora = (d) => d.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", hour12: true });
+    const poner = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+
+    poner("finNombre", sessionStorage.getItem("nombreConductor") || "conductor");
+    poner("finDuracion", h > 0 ? `${h}h ${m}m` : (m > 0 ? `${m}m ${s}s` : `${s}s`));
+    poner("finTurnoAlerts", alertas);
+    poner("finNormal", `${pctNormal.toFixed(pctNormal >= 99.95 ? 0 : 1)}%`);
+    poner("finInicio", hora(inicio));
+    poner("finFin", hora(fin));
+    poner("finUnidad", sessionStorage.getItem("codigoUnidad") || "302-A");
+
     document.getElementById("btnEndSession")?.addEventListener("click", () => {
       navigateTo("login");
     });
@@ -366,75 +396,15 @@ function bindEvents(viewName) {
     });
   }
 
-  // 10. DASHBOARD SUPERVISOR (Consumo de datos reales desde Spring Boot)
-  if (viewName === "dashboard-supervisor") {
-    document.getElementById("btnVerConductor")?.addEventListener("click", () => {
-      navigateTo("detalle-conductor");
-    });
 
-    // Función asíncrona para consultar el resumen consolidado
-    async function sincronizarDashboardSupervisor() {
-      try {
-        const res = await fetch(`${API_URL}/api/dashboard/supervisor`);
-        if (!res.ok) throw new Error("Error en servidor Spring Boot");
 
-        const data = await res.json();
-
-        // A. Actualizar KPI numérico de alertas de hoy
-        const kpiAlerts = document.getElementById("supKpiAlerts");
-        if (kpiAlerts) kpiAlerts.innerText = data.totalAlertasHoy;
-
-        // B. Renderizar la tabla de flota con datos de cada unidad
-        const tbody = document.getElementById("tablaFlotaBody");
-        if (tbody && data.flota) {
-          tbody.innerHTML = data.flota.map(item => `
-            <tr>
-              <td><strong>${item.unidad}</strong></td>
-              <td>${item.conductor}</td>
-              <td>${item.ruta}</td>
-              <td>
-                <span class="badge-status ${item.estado === 'Fatiga' ? 'fatiga' : 'ok'}">
-                  ${item.estado}
-                </span>
-              </td>
-              <td>
-                <button class="btn-sm" onclick="alert('Unidad: ${item.unidad}\\nConductor: ${item.conductor}\\nTotal Alertas Registradas: ${item.totalAlertas}')">
-                  Ver Estado
-                </button>
-              </td>
-            </tr>
-          `).join("");
-        }
-
-        // C. Renderizar feed de incidentes en tiempo real
-        const feed = document.getElementById("feedAlertasSupervisor");
-        if (feed && data.ultimasAlertas) {
-          if (data.ultimasAlertas.length === 0) {
-            feed.innerHTML = "<li style='color:#8fa0c0;'>No hay alertas de fatiga registradas hoy.</li>";
-          } else {
-            feed.innerHTML = data.ultimasAlertas.map(a => {
-              const hora = a.fechaHora ? a.fechaHora.split("T")[1].substring(0, 5) : "--:--";
-              return `
-                <li>
-                  <span class="time">${hora}</span>
-                  <strong>Unidad ${a.unidad}:</strong> ${a.tipoAlerta} detectado (EAR: ${a.earCalculado})
-                </li>
-              `;
-            }).join("");
-          }
-        }
-      } catch (error) {
-        console.warn("Spring Boot no disponible o en proceso de carga:", error);
-      }
-    }
-
-    // Primera carga al entrar al panel
-    sincronizarDashboardSupervisor();
-
-    // Actualización automática cada 3 segundos para refresco en vivo
-    supervisorPollingInterval = setInterval(sincronizarDashboardSupervisor, 3000);
+      // 10. PANEL DEL SUPERVISOR (datos reales) - la lógica está en src/supervisor/supervisor.js
+  if (["dashboard-supervisor", "flota", "detalle-conductor", "reportes", "centro-ia"].includes(viewName)) {
+    initSupervisorView(viewName, navigateTo);
   }
-}
+
+  }
+
 
 // Iniciar aplicación
 navigateTo("login");

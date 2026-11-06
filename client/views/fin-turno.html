@@ -2,20 +2,20 @@
   <div class="success-banner">
     <div class="checkmark-circle">✔</div>
     <h2>¡Turno finalizado!</h2>
-    <p>Buen trabajo, J. Pérez Gómez</p>
+    <p>Buen trabajo, <span id="finNombre">conductor</span></p>
   </div>
 
   <div class="kpi-three-grid">
-    <div class="kpi-box"><span class="val">8h 10m</span><span class="lbl">DURACIÓN</span></div>
-    <div class="kpi-box"><span class="val text-red" id="finTurnoAlerts">1</span><span class="lbl">ALERTAS</span></div>
-    <div class="kpi-box"><span class="val text-green">98%</span><span class="lbl">NORMAL</span></div>
+    <div class="kpi-box"><span class="val" id="finDuracion">--</span><span class="lbl">DURACIÓN</span></div>
+    <div class="kpi-box"><span class="val text-red" id="finTurnoAlerts">0</span><span class="lbl">ALERTAS</span></div>
+    <div class="kpi-box"><span class="val text-green" id="finNormal">--</span><span class="lbl">NORMAL</span></div>
   </div>
 
   <div class="summary-details">
     <h3>RESUMEN DEL TURNO</h3>
-    <div class="row"><span>Hora de inicio</span><strong>07:45 AM</strong></div>
-    <div class="row"><span>Hora de fin</span><strong>03:55 PM</strong></div>
-    <div class="row"><span>Unidad</span><strong>302-A</strong></div>
+    <div class="row"><span>Hora de inicio</span><strong id="finInicio">--</strong></div>
+    <div class="row"><span>Hora de fin</span><strong id="finFin">--</strong></div>
+    <div class="row"><span>Unidad</span><strong id="finUnidad">--</strong></div>
     <div class="row"><span>Ruta recorrida</span><strong>SJL → Cercado de Lima</strong></div>
   </div>
 

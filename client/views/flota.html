@@ -1,6 +1,9 @@
 <div class="supervisor-layout">
   <aside class="sidebar">
-    <div class="brand"><span class="logo">🚌</span><h2>SafeDrive IA</h2></div>
+    <div class="brand">
+      <span class="logo">🚌</span>
+      <h2>SafeDrive IA</h2>
+    </div>
     <nav class="nav-menu">
       <a href="#" id="menuDash" class="nav-item">📊 Panel General</a>
       <a href="#" id="menuFlota" class="nav-item active">🚐 Unidades / Flota</a>
@@ -12,26 +15,30 @@
 
   <main class="main-content">
     <div class="top-bar">
-      <h1>Unidades / Flota (20 registradas)</h1>
-      <button class="btn-primary">+ Registrar Unidad</button>
+      <div>
+        <h1>Unidades / Flota (<span id="flotaTotal">0</span> registradas)</h1>
+        <span id="connStatus" class="conn-status">● Conectando...</span>
+      </div>
+      <button id="btnNuevaUnidad" class="btn-primary">+ Registrar Unidad</button>
     </div>
 
-    <div class="units-grid">
-      <div class="unit-card">
-        <div class="u-header"><strong>Unidad 302-A</strong><span class="badge-status ok">Normal</span></div>
-        <p>J. Pérez Gómez (Turno mañana)</p>
-        <div class="u-meta"><span>2h 15m EN RUTA</span><span>1 ALERTA</span><span class="text-green">98% BATERÍA</span></div>
-      </div>
-      <div class="unit-card alert-border">
-        <div class="u-header"><strong>Unidad 302-B</strong><span class="badge-status fatiga">Fatiga</span></div>
-        <p>L. Ramos Quispe (Turno mañana)</p>
-        <div class="u-meta"><span>4h 40m EN RUTA</span><span class="text-red">3 ALERTAS</span><span>85% BATERÍA</span></div>
-      </div>
-      <div class="unit-card">
-        <div class="u-header"><strong>Unidad 302-C</strong><span class="badge-status ok">Normal</span></div>
-        <p>M. Ticona Flores (Turno tarde)</p>
-        <div class="u-meta"><span>1h 05m EN RUTA</span><span>0 ALERTAS</span><span class="text-green">100% BATERÍA</span></div>
-      </div>
+    <div class="units-grid" id="unitsGrid">
+      <p class="text-muted">Cargando unidades desde la base de datos...</p>
     </div>
   </main>
+
+  <dialog id="dlgUnidad" class="dlg-unidad">
+    <form id="formUnidad">
+      <h3>Registrar unidad</h3>
+      <label for="inCodigo">CÓDIGO DE LA UNIDAD</label>
+      <input id="inCodigo" type="text" placeholder="Ej. 302-F" maxlength="20" required />
+      <label for="inPlaca">PLACA</label>
+      <input id="inPlaca" type="text" placeholder="Ej. B8A-710" maxlength="10" required />
+      <p class="dlg-error" id="dlgError"></p>
+      <div class="dlg-actions">
+        <button type="button" id="btnCancelarUnidad" class="btn-sm btn-sec">Cancelar</button>
+        <button type="submit" class="btn-sm">Guardar</button>
+      </div>
+    </form>
+  </dialog>
 </div>
